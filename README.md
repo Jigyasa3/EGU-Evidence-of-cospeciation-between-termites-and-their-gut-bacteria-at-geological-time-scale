@@ -102,8 +102,17 @@ perl /home/j/jigyasa-arora/local/FASconCAT/FASconCAT_v1.11.pl -s #smatrix of all
 
 ## Run BEAST2.4.8
 ```
+1. Generate a NEXUS file from FcC_smatrix.fas alignment file in GENEIOUS PRIME
+2. In the NEXUS file add the following partitions at the end-
 
+begin assumptions;
+        charset prot_1st=1-25156\2;
+        charset prot_2nd=2-25156\2;
+        charset rrna=25157-30349;
+        charset trna=30350-34553;
+end;
 
+3.
 ```
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
