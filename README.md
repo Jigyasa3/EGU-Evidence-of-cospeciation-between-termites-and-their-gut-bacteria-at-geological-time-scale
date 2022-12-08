@@ -4,6 +4,108 @@ This repository contains the scripts to run the analysis performed for the manus
 
 The data analysis occurs in the following steps- The folder names and filenames are same as in the repository. The scripts are in ```script/``` folder and data in ```data/``` folder.
 
+##mtDNA beast2 tree-
+
+##Run mitofinder on contigs extracted by BLAST search-
+```
+module load MitoFinder/1.4
+module load python/2.7.18
+module load ncbi-blast/2.10.0+
+module load mitfi/0.1
+
+
+DB="/bucket/BourguignonU/SimonH/databases/ANNOTATION_MT_GENOMES/MITOFINDER_DB"
+
+mitofinder --seqid ${file2} --assembly ${file1} --refseq ${DB}/sequence.gb --organism 5 --processors 14  --blast-eval 0.00001 --blast-identity-nucl 50 --blast-identity-prot 40 --blast-size 30 --min-contig-size 300 --max-contig-size 30000
+
+```
+
+##Extract the outputs from mitofinder-
+```
+#Get all the gff files to the same directory-
+for i in mtdna*;do cp ${i}/${i}_MitoFinder_mitfi_Final_Results/*.gff mitofinder_output/${i}.gff; done
+
+## only print out lines that contain "gene"
+for i in *gff;do awk '!/gene/' $i > ${i}_new1;done
+##replace column3 with column9
+for i in *_new1 ;do awk '{$3=$9;$9=$1}1'  $i > ${i}_new2;done
+##change file to Tab-deliminated format
+for i in *_new2 ;do awk '{ for(i=1;i<=NF;i++){if(i==NF){printf("%s\n",$NF);}else {printf("%s\t",$i)}}}' ${i} > ${i}_new3;done
+##Only print out first 9 columns
+for i in *_new3 ;do awk '{print$1,$2,$3,$4,$5,$6,$7,$8,$9}' ${i} > ${i}_new4;done
+##change file to Tab-deliminated format
+for i in *_new4;do awk '{ for(i=1;i<=NF;i++){if(i==NF){printf("%s\n",$NF);}else {printf("%s\t",$i)}}}' ${i} > ${i}_final.gff;done
+
+##Extract Genes separately
+##Make sure that fasta header and col1 of bed file match!
+for i in *gff;do awk '{print $1; exit}' ${i}> ${i}-header.txt;done
+cat *header.txt > allheadersgff.txt
+
+for i in mtdna*fasta;do seqkit replace -p "(.+)$" -r "{kv}" -k ../2-original_mitofinder_headers.txt ${i} > mitofinder_output/2-${i};done
+for i in 2-mtdna272-*.fasta;do filename=`echo ${i}|awk -F".fasta" '{print $1}'`; filename2=`echo ${filename}| awk -F"2-mtdna" '{print "mtdna"$2}'`; bedtools getfasta -fi ${i} -bed ${filename2}.gff_new1_new2_new3_new4_final.gff -name > ${filename2}_separate_genes.fasta; done
+
+<on one file> 
+bedtools getfasta -fi 2-mtdna301-59.fasta -bed mtdna301-59.gff_new1_new2_new3_new4_final.gff -name > mtdna301-59_se
+parate_genes.fasta
+
+##Generate a gene specific file for all mtdna genes
+#Get the 38 mtdna gene ids out-
+grep ">" mtdna230-24_separate_genes.fasta > individual_genes/all_mtdna_genenames.txt #230-24 has all 38 genes!
+sed -i 's/mtdna.*$//g' all_mtdna_genenames.txt
+
+#Generate separate files with all sampleids for each mtdna geneid-
+<on one file> grep ">Name=tRNA-Asn::" *separate_genes.fasta | sed 's/^.*.fasta:>//g' > individual_genes/ids-tRNA-Asn.txt
+while read line;do newname=`echo ${line}|awk -F">Name=" '{print $2}'`; newname2=`echo ${newname}| awk -F "::" '{print $1}'` ; grep "${line}" *separate_genes.fasta | sed 's/^.*.fasta:>//g' > individual_genes/ids-${newname2}.txt  ;done < individual_genes/all_mtdna_genenames.txt
+
+#Extract the fasta sequences out for each mtdna geneid-
+cat *_separate_genes.fasta > all_separate_genes.fasta
+for i in ids-*.txt;do filename=`echo ${i}| awk -F"ids-" '{print $2}'`; filename2=`echo ${filename}| awk -F".txt" '{print $1}'` ; seqtk subseq ../all_separate_genes.fasta ${i} > ${filename2}.fasta ;done
+
+##Rename the fasta headers with original filename-
+#Remove unnecessary info from fasta headers-
+for i in *fasta;do sed 's/>.*::mtdna/>/g' ${i} > newnames/2-${i};done
+for i in 2-*.fasta;do sed 's/\.1.*$//g' ${i} > 3-${i};done
+
+#Remove the 3 samples from all files- <301-30, 301-39, 272-20>
+nano idstoremove.txt
+for i in 3-2-*.fasta;do awk 'BEGIN{while((getline<"idstoremove.txt")>0)l[">"$1]=1}/^>/{f=!l[$1]}f' ${i} > 4-${i};done
+
+#Get the old names and new names in tab separated file-
+awk -F"," '{print $1"\t" $16}' sample_names_ids_withotherfactors_tomedit.202samples_nov2022.csv > 2-sample_names_ids_withotherfactors_tomedit.202samples_nov2022.csv
+
+#rename the fasta files-
+for i in 4-3-2-*fasta;do seqkit replace -p "(.+)$" -r "{kv}" -k ../../../../../2-sample_names_ids_withotherfactors_tomedit.202samples_nov2022.csv ${i} > named-${i};done
+```
+
+##Generate smatrix to run BEAST-
+```
+##run mafft
+module load mafft/7.305
+
+#mafft --maxiterate 1000 --localpair --amino ${IN_DIR}/${file1} > ${OUT_DIR}/aligned-${file1} #for short no. of sequences
+mafft --auto ${IN_DIR}/${file1} > ${OUT_DIR}/aligned-${file1} #for large no. of sequences
+
+##Make sure that aligned files have extension ".fas"
+/home/j/jigyasa-arora/bin/rename/rename "s/.fasta/.fas/" aligned*.fasta
+
+##Separate out the mtDNA genes into three folders- protein/ rrna/ trna/
+##Generate a separate smatrix for all three folders-
+
+perl /home/j/jigyasa-arora/local/FASconCAT/FASconCAT_v1.11.pl -s
+
+cp protein/FcC_smatrix_prot.fas .
+cp rrna/FcC_smatrix_rrna.fas .
+cp trna/FcC_smatrix_trna.fas .
+
+perl /home/j/jigyasa-arora/local/FASconCAT/FASconCAT_v1.11.pl -s #smatrix of all rrna, trna, proteins combined!
+```
+
+##Run BEAST2.4.8
+```
+
+
+```
+
 ## step1. Root the tree with outgroup bacterial sequences-
 
 ```module load R/3.6.1```
