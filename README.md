@@ -4,9 +4,9 @@ This repository contains the scripts to run the analysis performed for the manus
 
 The data analysis occurs in the following steps- The folder names and filenames are same as in the repository. The scripts are in ```script/``` folder and data in ```data/``` folder.
 
-##mtDNA beast2 tree-
+### mtDNA beast2 tree-
 
-##Run mitofinder on contigs extracted by BLAST search-
+## Run mitofinder on contigs extracted by BLAST search-
 ```
 module load MitoFinder/1.4
 module load python/2.7.18
@@ -20,7 +20,7 @@ mitofinder --seqid ${file2} --assembly ${file1} --refseq ${DB}/sequence.gb --org
 
 ```
 
-##Extract the outputs from mitofinder-
+## Extract the outputs from mitofinder-
 ```
 #Get all the gff files to the same directory-
 for i in mtdna*;do cp ${i}/${i}_MitoFinder_mitfi_Final_Results/*.gff mitofinder_output/${i}.gff; done
@@ -77,7 +77,7 @@ awk -F"," '{print $1"\t" $16}' sample_names_ids_withotherfactors_tomedit.202samp
 for i in 4-3-2-*fasta;do seqkit replace -p "(.+)$" -r "{kv}" -k ../../../../../2-sample_names_ids_withotherfactors_tomedit.202samples_nov2022.csv ${i} > named-${i};done
 ```
 
-##Generate smatrix to run BEAST-
+## Generate smatrix to run BEAST-
 ```
 ##run mafft
 module load mafft/7.305
@@ -100,11 +100,14 @@ cp trna/FcC_smatrix_trna.fas .
 perl /home/j/jigyasa-arora/local/FASconCAT/FASconCAT_v1.11.pl -s #smatrix of all rrna, trna, proteins combined!
 ```
 
-##Run BEAST2.4.8
+## Run BEAST2.4.8
 ```
 
 
 ```
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+### Marker gene trees-
 
 ## step1. Root the tree with outgroup bacterial sequences-
 
