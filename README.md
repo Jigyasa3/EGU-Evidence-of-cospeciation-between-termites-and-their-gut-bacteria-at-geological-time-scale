@@ -112,11 +112,30 @@ begin assumptions;
         charset trna=30350-34553;
 end;
 
-3.
+3. Script to run BEAST2-
+#SBATCH --partition=largemem
+#SBATCH --time=35-0
+#SBATCH --mem=140G
+
+module load beast2/v2.4.8
+java -jar /apps/free72/beast2/v2.4.8/lib/beast.jar -seed 13579 -overwrite 18Aug2019_termites_Serriconstrained.xml
+
+4. Script to run BEAST2 Treeannotator-
+#SBATCH --partition=largemem
+#SBATCH --time=19-0
+#SBATCH --mem=700G
+
+module load beast2/v2.4.8
+##NOTE-check TRACER to get how much percent of generations need to be removed for burn-in. Sometime it varies from the one defined in .xml file
+java -Xms550m -Xmx550g -Djava.library.path="$BEAST/lib" -cp "$BEAST/lib/launcher.jar" beast.app.treeannotator.TreeAnnotatorLauncher -burnin 10 rna12-16S.trees rna12-16S_202samples_concensus.trees
+
+
 ```
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
 ### Marker gene trees-
+
+## step0. Check extractmarkergenes.md and GTDBver95_outgroups.md followed by generate_phyla_specific_trees.md in the scripts/ folder
 
 ## step1. Root the tree with outgroup bacterial sequences-
 
