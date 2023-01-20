@@ -197,3 +197,12 @@ Rscript newhosttree.R ../data/output/2-symbiontheader-Spirochaetota-COG0012_tips
 ```
 Rscript treedist.R hosttree-Spirochaetota-COG0012_tips_1.nwk symbionttree-Spirochaetota-COG0012_tips_1.nwk generalized_rf_pvalue-Spirochaetota-COG0012_tips_1.nwk.txt nye-pvalue-Spirochaetota-COG0012_tips_1.nwk.txt
 ``` 
+
+#### Get TSCs common across marker genes-
+```
+#1. Run script "getcommonclades_termitegtdbfunction.R" on RSTUDIO as the library HOME doesn't install on DEIGO
+#2. In Excel-   Convert rows to columns
+                Manually combine columns if any TSC is common between them
+                Remove duplicates
+                Save file
+```
