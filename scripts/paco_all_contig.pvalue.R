@@ -70,4 +70,5 @@ D.pvalue<-D$gof #output D$gof$ss ->m^2xy=56.92 #gives the p-value of overall phy
 write.csv(D.pvalue,file=output_file1)
 
 #----------------------------------------------------------
-
+#NOTE-OR run the script "paco2.R" if the above script gives the following error-"Error in if (nrow(X) != nrow(Y)) stop(gettextf("matrices have different number of rows: %d and %d",  : 
+  argument is of length zero"
